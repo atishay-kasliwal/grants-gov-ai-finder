@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Grant Scout</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <p class="eyebrow">Grants.gov Search</p>
+        <h1>Find recent AI, data, and software-related grant opportunities.</h1>
+        <p class="hero-copy">
+          This minimal frontend searches the live Grants.gov API through the local wrapper.
+          It treats "recent" as opportunities with an <code>openDate</code> in the last
+          <code>N</code> days.
+        </p>
+        <div class="hero-actions">
+          <button id="fill-ai-scenario" type="button" class="button button-secondary">
+            Load AI Scenario
+          </button>
+          <a class="button button-ghost" href="/openapi.json" target="_blank" rel="noreferrer">
+            Open API Spec
+          </a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <form id="search-form" class="search-form">
+          <div class="grid two-up">
+            <label class="field">
+              <span>Keywords</span>
+              <textarea
+                id="keywords"
+                name="keywords"
+                rows="5"
+                placeholder="artificial intelligence&#10;machine learning&#10;software engineer"
+              ></textarea>
+              <small>One per line, or separated by commas.</small>
+            </label>
+
+            <div class="stack">
+              <label class="field">
+                <span>Recent days</span>
+                <input id="recentDays" name="recentDays" type="number" min="0" value="30">
+              </label>
+
+              <label class="field">
+                <span>Rows per keyword</span>
+                <input id="rows" name="rows" type="number" min="1" max="100" value="10">
+              </label>
+
+              <fieldset class="field">
+                <legend>Status</legend>
+                <div class="check-grid">
+                  <label><input type="checkbox" name="oppStatus" value="posted" checked> Posted</label>
+                  <label><input type="checkbox" name="oppStatus" value="forecasted"> Forecasted</label>
+                  <label><input type="checkbox" name="oppStatus" value="closed"> Closed</label>
+                  <label><input type="checkbox" name="oppStatus" value="archived"> Archived</label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <div class="grid four-up">
+            <label class="field">
+              <span>Opportunity number</span>
+              <input id="oppNum" name="oppNum" type="text" placeholder="26-512">
+            </label>
+
+            <label class="field">
+              <span>Agencies</span>
+              <input id="agencies" name="agencies" type="text" placeholder="NSF or HHS-ACF-ANA">
+            </label>
+
+            <label class="field">
+              <span>ALN</span>
+              <input id="aln" name="aln" type="text" placeholder="93.866">
+            </label>
+
+            <label class="field">
+              <span>Eligibility codes</span>
+              <input id="eligibilities" name="eligibilities" type="text" placeholder="01">
+            </label>
+
+            <label class="field">
+              <span>Funding categories</span>
+              <input id="fundingCategories" name="fundingCategories" type="text" placeholder="ST">
+            </label>
+          </div>
+
+          <div class="grid two-up">
+            <label class="field">
+              <span>Funding instruments</span>
+              <input id="fundingInstruments" name="fundingInstruments" type="text" placeholder="G">
+            </label>
+
+            <label class="field inline-field">
+              <span>Include raw Grants.gov payload</span>
+              <input id="includeRaw" name="includeRaw" type="checkbox">
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="button button-primary">Search Grants</button>
+            <button id="reset-form" type="button" class="button button-secondary">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="results-header">
+          <div>
+            <p class="eyebrow">Results</p>
+            <h2>Opportunities</h2>
+          </div>
+          <p id="status-message" class="status-message">Run a search to see results.</p>
+        </div>
+
+        <div id="summary" class="summary-grid" hidden></div>
+        <div id="results" class="results-list"></div>
+        <pre id="raw-output" class="raw-output" hidden></pre>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Supported Filters</p>
+        <div class="filter-grid">
+          <article>
+            <h3>Keyword filters</h3>
+            <ul>
+              <li><code>keyword</code> or multiple keywords</li>
+              <li><code>rows</code></li>
+              <li><code>recentDays</code> on top of Grants.gov open dates</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Opportunity filters</h3>
+            <ul>
+              <li><code>oppStatuses</code>: posted, forecasted, closed, archived</li>
+              <li><code>oppNum</code></li>
+              <li><code>agencies</code></li>
+            </ul>
+          </article>
+          <article>
+            <h3>Program filters</h3>
+            <ul>
+              <li><code>aln</code></li>
+              <li><code>eligibilities</code></li>
+              <li><code>fundingCategories</code></li>
+              <li><code>fundingInstruments</code></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

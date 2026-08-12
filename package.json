@@ -1,0 +1,15 @@
+{
+  "name": "grants-gov-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal API wrapper around the Grants.gov fetchOpportunity endpoint.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  }
+}

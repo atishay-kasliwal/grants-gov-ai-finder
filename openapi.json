@@ -1,0 +1,673 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Grants.gov Opportunity API",
+    "version": "1.0.0",
+    "description": "A small API wrapper around the Grants.gov fetchOpportunity endpoint."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service is running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/opportunities/{opportunityId}": {
+      "get": {
+        "summary": "Fetch a Grants.gov opportunity by ID",
+        "parameters": [
+          {
+            "name": "opportunityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "includeRaw",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normalized opportunity details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream Grants.gov failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/opportunities/search": {
+      "get": {
+        "summary": "Search Grants.gov opportunities by keyword",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Repeat this parameter for multiple keywords."
+          },
+          {
+            "name": "keywords",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated keywords if you prefer a single query param."
+          },
+          {
+            "name": "recentDays",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "oppNum",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rows",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "oppStatuses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "posted"
+            }
+          },
+          {
+            "name": "includeRaw",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normalized search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Search Grants.gov opportunities from a JSON body",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpportunitySearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Normalized search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/opportunities/fetch": {
+      "post": {
+        "summary": "Fetch a Grants.gov opportunity from a JSON body",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpportunityFetchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Normalized opportunity details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream Grants.gov failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "status"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "example": "ok"
+          }
+        }
+      },
+      "OpportunityFetchRequest": {
+        "type": "object",
+        "required": [
+          "opportunityId"
+        ],
+        "properties": {
+          "opportunityId": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "OpportunitySearchRequest": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "oppNum": {
+            "type": "string"
+          },
+          "recentDays": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "oppStatuses": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "OpportunityResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "opportunity",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "opportunity": {
+            "$ref": "#/components/schemas/Opportunity"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/UpstreamMeta"
+          },
+          "raw": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "criteria",
+          "opportunities",
+          "querySummaries",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "criteria": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "opportunities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchOpportunity"
+            }
+          },
+          "querySummaries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/UpstreamMeta"
+          },
+          "raw": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "Opportunity": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "opportunityNumber": {
+            "type": "string"
+          },
+          "opportunityTitle": {
+            "type": "string"
+          },
+          "owningAgencyCode": {
+            "type": "string"
+          },
+          "listed": {
+            "type": "string"
+          },
+          "agencyName": {
+            "type": "string"
+          },
+          "agencyContactName": {
+            "type": "string"
+          },
+          "agencyContactEmail": {
+            "type": "string"
+          },
+          "agencyContactPhone": {
+            "type": "string"
+          },
+          "costSharing": {
+            "type": "boolean"
+          },
+          "awardCeiling": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "awardFloor": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "postingDate": {
+            "type": "string"
+          },
+          "fundingInstruments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookupItem"
+            }
+          },
+          "applicantTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookupItem"
+            }
+          },
+          "fundingActivityCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LookupItem"
+            }
+          },
+          "assistanceListings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssistanceListing"
+            }
+          },
+          "attachmentFolders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentFolder"
+            }
+          }
+        }
+      },
+      "SearchOpportunity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "opportunityNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "opportunityTitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "agencyCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "agencyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "openDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "openDateIso": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "closeDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "closeDateIso": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "opportunityStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "documentType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assistanceListingNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "matchedKeywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LookupItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "AssistanceListing": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "alnNumber": {
+            "type": "string"
+          },
+          "programTitle": {
+            "type": "string"
+          }
+        }
+      },
+      "AttachmentFolder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "folderType": {
+            "type": "string"
+          },
+          "folderName": {
+            "type": "string"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentFile"
+            }
+          }
+        }
+      },
+      "AttachmentFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "fileDescription": {
+            "type": "string"
+          }
+        }
+      },
+      "UpstreamMeta": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "example": "Grants.gov"
+          },
+          "upstreamMessage": {
+            "type": "string"
+          },
+          "upstreamErrorCode": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "error"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "details": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
