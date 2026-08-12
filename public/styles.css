@@ -222,7 +222,9 @@ fieldset.field {
 
 .summary-grid,
 .results-list,
-.filter-grid {
+.filter-grid,
+.portal-grid,
+.spotlight-grid {
   display: grid;
   gap: 1rem;
 }
@@ -234,11 +236,62 @@ fieldset.field {
 
 .summary-card,
 .result-card,
-.filter-grid article {
+.filter-grid article,
+.portal-card,
+.spotlight-card {
   border-radius: 18px;
   border: 1px solid var(--border);
   background: var(--panel-strong);
   padding: 1rem;
+}
+
+.portal-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.portal-card,
+.spotlight-card {
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+}
+
+.portal-card p,
+.spotlight-card p {
+  margin: 0;
+}
+
+.portal-card-featured {
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(12, 74, 110, 0.06)),
+    var(--panel-strong);
+}
+
+.portal-card ul {
+  color: var(--muted);
+}
+
+.spotlight-grid {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.keyword-chip {
+  border: 1px solid rgba(12, 74, 110, 0.16);
+  background: rgba(12, 74, 110, 0.08);
+  color: var(--accent-strong);
+  border-radius: 999px;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.84rem;
+}
+
+.keyword-chip:hover {
+  transform: translateY(-1px);
 }
 
 .summary-card strong {
@@ -294,7 +347,8 @@ li + li {
 
 @media (max-width: 860px) {
   .two-up,
-  .four-up {
+  .four-up,
+  .spotlight-grid {
     grid-template-columns: 1fr;
   }
 

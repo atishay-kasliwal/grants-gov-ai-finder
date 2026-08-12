@@ -1,6 +1,7 @@
 const form = document.querySelector("#search-form");
 const fillAiScenarioButton = document.querySelector("#fill-ai-scenario");
 const resetFormButton = document.querySelector("#reset-form");
+const keywordChips = document.querySelectorAll(".keyword-chip");
 const summary = document.querySelector("#summary");
 const results = document.querySelector("#results");
 const rawOutput = document.querySelector("#raw-output");
@@ -28,6 +29,28 @@ fillAiScenarioButton.addEventListener("click", () => {
   });
 
   statusMessage.textContent = "AI scenario loaded. Run the search when you’re ready.";
+});
+
+keywordChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const nextKeyword = chip.dataset.keyword?.trim();
+
+    if (!nextKeyword) {
+      return;
+    }
+
+    const existingKeywords = form.keywords.value
+      .split(/\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (!existingKeywords.includes(nextKeyword)) {
+      existingKeywords.push(nextKeyword);
+      form.keywords.value = existingKeywords.join("\n");
+    }
+
+    statusMessage.textContent = `"${nextKeyword}" added to the search box.`;
+  });
 });
 
 resetFormButton.addEventListener("click", () => {
