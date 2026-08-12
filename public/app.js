@@ -3,7 +3,8 @@ const fillAiScenarioButton = document.querySelector("#fill-ai-scenario");
 const resetFormButton = document.querySelector("#reset-form");
 const keywordChips = document.querySelectorAll(".keyword-chip");
 const summary = document.querySelector("#summary");
-const results = document.querySelector("#results");
+const resultsBody = document.querySelector("#results-body");
+const rawPanel = document.querySelector("#raw-panel");
 const rawOutput = document.querySelector("#raw-output");
 const statusMessage = document.querySelector("#status-message");
 
@@ -19,16 +20,10 @@ const scenarioDefaults = {
   oppStatuses: ["posted"]
 };
 
-fillAiScenarioButton.addEventListener("click", () => {
-  form.keywords.value = scenarioDefaults.keywords;
-  form.recentDays.value = scenarioDefaults.recentDays;
-  form.rows.value = scenarioDefaults.rows;
-
-  document.querySelectorAll('input[name="oppStatus"]').forEach((input) => {
-    input.checked = scenarioDefaults.oppStatuses.includes(input.value);
-  });
-
-  statusMessage.textContent = "AI scenario loaded. Run the search when you’re ready.";
+fillAiScenarioButton.addEventListener("click", async () => {
+  applyScenarioDefaults();
+  statusMessage.textContent = "AI scenario loaded. Refreshing the table...";
+  await runSearchFromForm();
 });
 
 keywordChips.forEach((chip) => {
@@ -39,39 +34,52 @@ keywordChips.forEach((chip) => {
       return;
     }
 
-    const existingKeywords = form.keywords.value
-      .split(/\n|,/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-
+    const existingKeywords = getNormalizedKeywords(form.keywords.value);
     if (!existingKeywords.includes(nextKeyword)) {
       existingKeywords.push(nextKeyword);
       form.keywords.value = existingKeywords.join("\n");
     }
 
-    statusMessage.textContent = `"${nextKeyword}" added to the search box.`;
+    statusMessage.textContent = `"${nextKeyword}" added to the keyword list.`;
   });
 });
 
 resetFormButton.addEventListener("click", () => {
   form.reset();
+  clearStatusSelections();
   document.querySelector('input[name="oppStatus"][value="posted"]').checked = true;
-  summary.hidden = true;
   summary.innerHTML = "";
-  results.innerHTML = "";
-  rawOutput.hidden = true;
+  rawPanel.hidden = true;
+  rawPanel.removeAttribute("open");
   rawOutput.textContent = "";
-  statusMessage.textContent = "Run a search to see results.";
+  renderPlaceholder("Ready for a new search.");
+  statusMessage.textContent = "Filters reset. Run a search when you’re ready.";
 });
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  await runSearchFromForm();
+});
 
+window.addEventListener("load", async () => {
+  applyScenarioDefaults();
+  await runSearchFromForm();
+});
+
+async function runSearchFromForm() {
   const payload = buildPayload(form);
+
+  if (payload.requestBody.keywords.length === 0) {
+    statusMessage.textContent = "Add at least one keyword to search.";
+    renderPlaceholder("Add keywords like artificial intelligence or software innovation.");
+    return;
+  }
+
   statusMessage.textContent = "Searching Grants.gov...";
-  summary.hidden = true;
-  results.innerHTML = "";
-  rawOutput.hidden = true;
+  summary.innerHTML = "";
+  renderPlaceholder("Searching live opportunities...");
+  rawPanel.hidden = true;
+  rawPanel.removeAttribute("open");
 
   try {
     const url = new URL("/api/opportunities/search", window.location.origin);
@@ -96,22 +104,17 @@ form.addEventListener("submit", async (event) => {
     renderSummary(data);
     renderResults(data.opportunities);
     renderRaw(data.raw);
-    statusMessage.textContent = `Found ${data.opportunities.length} opportunities across ${data.querySummaries.length} keyword searches.`;
+    statusMessage.textContent = `Showing ${data.opportunities.length} unique opportunities from ${data.criteria.keywords.length} keywords.`;
   } catch (error) {
-    summary.hidden = true;
-    results.innerHTML = "";
-    rawOutput.hidden = true;
+    summary.innerHTML = "";
+    renderPlaceholder("Search failed. Adjust the filters or try again.");
+    rawPanel.hidden = true;
     statusMessage.textContent =
       error instanceof Error ? error.message : "Search failed.";
   }
-});
+}
 
 function buildPayload(formElement) {
-  const keywordValue = formElement.keywords.value
-    .split(/\n|,/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
   const oppStatuses = Array.from(
     formElement.querySelectorAll('input[name="oppStatus"]:checked')
   ).map((input) => input.value);
@@ -119,7 +122,7 @@ function buildPayload(formElement) {
   return {
     includeRaw: formElement.includeRaw.checked,
     requestBody: {
-      keywords: keywordValue,
+      keywords: getNormalizedKeywords(formElement.keywords.value),
       recentDays: toNumberOrUndefined(formElement.recentDays.value),
       rows: toNumberOrUndefined(formElement.rows.value),
       oppStatuses,
@@ -139,43 +142,40 @@ function renderSummary(data) {
     0
   );
 
-  summary.hidden = false;
   summary.innerHTML = [
-    createSummaryCard("Unique results", data.opportunities.length),
-    createSummaryCard("Combined hits", totalHits),
-    createSummaryCard("Keywords", data.criteria.keywords.length),
-    createSummaryCard(
+    createMetricCard("Unique results", data.opportunities.length),
+    createMetricCard("Combined hits", totalHits),
+    createMetricCard("Keywords", data.criteria.keywords.length),
+    createMetricCard(
       "Recent window",
-      data.criteria.recentDays === null ? "All" : `${data.criteria.recentDays} days`
+      data.criteria.recentDays === null ? "All dates" : `${data.criteria.recentDays} days`
     )
   ].join("");
 }
 
 function renderResults(opportunities) {
   if (!opportunities.length) {
-    results.innerHTML = `
-      <article class="result-card">
-        <h3>No matches</h3>
-        <p>Try broader keywords like <code>artificial intelligence</code>, <code>data</code>, or <code>digital</code>, or increase the recent-day window.</p>
-      </article>
-    `;
+    renderPlaceholder("No matches found. Try broader terms or increase recent days.");
     return;
   }
 
-  results.innerHTML = opportunities
+  resultsBody.innerHTML = opportunities
     .map(
       (opportunity) => `
-        <article class="result-card">
-          <p class="eyebrow">${escapeHtml(opportunity.agencyCode || "Unknown agency")}</p>
-          <h3>${escapeHtml(opportunity.opportunityTitle || "Untitled opportunity")}</h3>
-          <p class="result-meta">
-            <strong>${escapeHtml(opportunity.opportunityNumber || "No number")}</strong><br>
-            Opened ${escapeHtml(opportunity.openDate || "Unknown")} and closes ${escapeHtml(opportunity.closeDate || "Unknown")}
-          </p>
-          <div class="pill-row">
-            ${renderPills(opportunity.matchedKeywords)}
-          </div>
-        </article>
+        <tr>
+          <td>
+            <div class="cell-title">${escapeHtml(opportunity.opportunityTitle || "Untitled opportunity")}</div>
+            <div class="cell-subtitle">${escapeHtml(opportunity.opportunityNumber || "No opportunity number")}</div>
+          </td>
+          <td>
+            <div class="cell-title">${escapeHtml(opportunity.agencyCode || "Unknown agency")}</div>
+            <div class="cell-subtitle">${escapeHtml(opportunity.agencyName || "Agency name unavailable")}</div>
+          </td>
+          <td>${escapeHtml(opportunity.openDate || "Unknown")}</td>
+          <td>${escapeHtml(opportunity.closeDate || "Unknown")}</td>
+          <td><span class="table-badge">${escapeHtml(opportunity.opportunityStatus || "Unknown")}</span></td>
+          <td><div class="table-chip-row">${renderPills(opportunity.matchedKeywords)}</div></td>
+        </tr>
       `
     )
     .join("");
@@ -183,28 +183,72 @@ function renderResults(opportunities) {
 
 function renderRaw(raw) {
   if (!raw) {
-    rawOutput.hidden = true;
+    rawPanel.hidden = true;
+    rawPanel.removeAttribute("open");
     rawOutput.textContent = "";
     return;
   }
 
-  rawOutput.hidden = false;
+  rawPanel.hidden = false;
   rawOutput.textContent = JSON.stringify(raw, null, 2);
 }
 
-function createSummaryCard(label, value) {
+function renderPlaceholder(message) {
+  resultsBody.innerHTML = `
+    <tr class="placeholder-row">
+      <td colspan="6">${escapeHtml(message)}</td>
+    </tr>
+  `;
+}
+
+function createMetricCard(label, value) {
   return `
-    <article class="summary-card">
-      <p>${escapeHtml(label)}</p>
+    <article class="metric-card">
+      <span>${escapeHtml(label)}</span>
       <strong>${escapeHtml(String(value))}</strong>
     </article>
   `;
 }
 
 function renderPills(values) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return '<span class="table-chip table-chip-muted">none</span>';
+  }
+
   return values
-    .map((value) => `<span class="pill">${escapeHtml(value)}</span>`)
+    .map((value) => `<span class="table-chip">${escapeHtml(value)}</span>`)
     .join("");
+}
+
+function applyScenarioDefaults() {
+  form.keywords.value = scenarioDefaults.keywords;
+  form.recentDays.value = scenarioDefaults.recentDays;
+  form.rows.value = scenarioDefaults.rows;
+  form.oppNum.value = "";
+  form.agencies.value = "";
+  form.aln.value = "";
+  form.eligibilities.value = "";
+  form.fundingCategories.value = "";
+  form.fundingInstruments.value = "";
+  form.includeRaw.checked = false;
+  clearStatusSelections();
+
+  document.querySelectorAll('input[name="oppStatus"]').forEach((input) => {
+    input.checked = scenarioDefaults.oppStatuses.includes(input.value);
+  });
+}
+
+function clearStatusSelections() {
+  document.querySelectorAll('input[name="oppStatus"]').forEach((input) => {
+    input.checked = false;
+  });
+}
+
+function getNormalizedKeywords(value) {
+  return value
+    .split(/\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function toNumberOrUndefined(value) {
