@@ -7,215 +7,488 @@
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="workspace-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Grant Scout</p>
-          <h1>AI, software, and innovation funding workspace</h1>
-        </div>
-        <div class="topbar-actions">
-          <span class="topbar-badge">Live Grants.gov wrapper</span>
-          <a class="button button-ghost" href="/openapi.json" target="_blank" rel="noreferrer">
-            API schema
+    <div class="app-shell" data-drawer-collapsed="false" data-mobile-drawer-open="false">
+      <aside class="app-drawer" aria-label="Navigation drawer">
+        <div class="drawer-header">
+          <a class="brand" href="/" aria-label="Grant Scout home">
+            <span class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M12 2.5a9.5 9.5 0 1 0 0 19a9.5 9.5 0 1 0 0-19Z" />
+                <path d="M12 6.75c2.8 0 5.08 2.28 5.08 5.08v3.84H6.92v-3.84c0-2.8 2.28-5.08 5.08-5.08Z" />
+                <path d="M9.37 11.48l2.12 2.11l4.17-4.28" />
+              </svg>
+            </span>
+            <span class="brand-label">Grant Scout</span>
           </a>
-        </div>
-      </header>
 
-      <div class="workspace-grid">
-        <aside class="sidebar">
-          <section class="panel panel-scroll">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Search Controls</p>
-                <h2>Filters</h2>
-              </div>
-              <p class="panel-note">Built for one-screen searching, with the table always visible.</p>
+          <button
+            id="drawer-toggle"
+            class="icon-button"
+            type="button"
+            aria-label="Collapse navigation drawer"
+            title="Collapse navigation"
+          >
+            <svg viewBox="0 0 20 20" focusable="false">
+              <path d="M11.75 5.5L7.25 10l4.5 4.5" />
+              <path d="M15.75 5.5L11.25 10l4.5 4.5" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="drawer-nav" aria-label="Primary navigation">
+          <button class="nav-item is-active" type="button" data-nav="discover" title="Discover">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" focusable="false">
+                <circle cx="9" cy="9" r="5.75" />
+                <path d="M13.2 13.2L17 17" />
+              </svg>
+            </span>
+            <span class="nav-label">Discover</span>
+          </button>
+
+          <button class="nav-item" type="button" data-nav="saved" title="Saved grants">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" focusable="false">
+                <path d="M6 3.5h8a1.5 1.5 0 0 1 1.5 1.5v11l-5.5-3l-5.5 3V5A1.5 1.5 0 0 1 6 3.5Z" />
+              </svg>
+            </span>
+            <span class="nav-label">Saved grants</span>
+          </button>
+
+          <button class="nav-item" type="button" data-nav="sources" title="Sources">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" focusable="false">
+                <ellipse cx="10" cy="5.25" rx="5.75" ry="2.25" />
+                <path d="M4.25 5.25v4.75c0 1.24 2.57 2.25 5.75 2.25s5.75-1.01 5.75-2.25V5.25" />
+                <path d="M4.25 10v4.75C4.25 15.99 6.82 17 10 17s5.75-1.01 5.75-2.25V10" />
+              </svg>
+            </span>
+            <span class="nav-label">Sources</span>
+          </button>
+        </nav>
+
+        <section class="drawer-section keyword-summary-section">
+          <div class="drawer-section-head">
+            <p class="drawer-heading">Keywords <span id="keyword-section-count">(0)</span></p>
+            <button id="toggle-query-editor" class="text-button" type="button">
+              Edit
+            </button>
+          </div>
+
+          <ul id="keyword-summary-list" class="keyword-summary-list"></ul>
+          <p id="keyword-summary-empty" class="drawer-empty">Run a search to populate keywords.</p>
+
+          <section id="query-editor" class="query-editor" hidden>
+            <p class="drawer-subheading">Search configuration</p>
+
+            <label class="field field-stack">
+              <span>Keywords</span>
+              <textarea
+                id="keywords"
+                name="keywords"
+                rows="4"
+                placeholder="artificial intelligence&#10;machine learning&#10;software innovation"
+              ></textarea>
+              <small>One phrase per line, or separated by commas.</small>
+            </label>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>Recent days</span>
+                <input id="recentDays" name="recentDays" type="number" min="0" value="30">
+              </label>
+
+              <label class="field">
+                <span>Rows</span>
+                <input id="rows" name="rows" type="number" min="1" max="100" value="10">
+              </label>
             </div>
 
-            <form id="search-form" class="control-form">
+            <div class="field-grid field-grid-compact">
               <label class="field">
-                <span>Keywords</span>
-                <textarea
-                  id="keywords"
-                  name="keywords"
-                  rows="4"
-                  placeholder="artificial intelligence&#10;machine learning&#10;software innovation"
-                ></textarea>
-                <small>One phrase per line, or separated by commas.</small>
+                <span>Opportunity #</span>
+                <input id="oppNum" name="oppNum" type="text" placeholder="26-512">
               </label>
 
-              <div class="control-grid">
-                <label class="field">
-                  <span>Recent days</span>
-                  <input id="recentDays" name="recentDays" type="number" min="0" value="30">
-                </label>
-
-                <label class="field">
-                  <span>Rows</span>
-                  <input id="rows" name="rows" type="number" min="1" max="100" value="10">
-                </label>
-
-                <label class="field">
-                  <span>Opportunity number</span>
-                  <input id="oppNum" name="oppNum" type="text" placeholder="26-512">
-                </label>
-
-                <label class="field">
-                  <span>Agencies</span>
-                  <input id="agencies" name="agencies" type="text" placeholder="NSF or HHS-ACF-ANA">
-                </label>
-              </div>
-
-              <div class="control-grid control-grid-compact">
-                <label class="field">
-                  <span>ALN</span>
-                  <input id="aln" name="aln" type="text" placeholder="93.866">
-                </label>
-
-                <label class="field">
-                  <span>Eligibility</span>
-                  <input id="eligibilities" name="eligibilities" type="text" placeholder="01">
-                </label>
-
-                <label class="field">
-                  <span>Funding category</span>
-                  <input id="fundingCategories" name="fundingCategories" type="text" placeholder="ST">
-                </label>
-
-                <label class="field">
-                  <span>Funding instrument</span>
-                  <input id="fundingInstruments" name="fundingInstruments" type="text" placeholder="G">
-                </label>
-              </div>
-
-              <fieldset class="field status-fieldset">
-                <legend>Status</legend>
-                <div class="status-row">
-                  <label><input type="checkbox" name="oppStatus" value="posted" checked> Posted</label>
-                  <label><input type="checkbox" name="oppStatus" value="forecasted"> Forecasted</label>
-                  <label><input type="checkbox" name="oppStatus" value="closed"> Closed</label>
-                  <label><input type="checkbox" name="oppStatus" value="archived"> Archived</label>
-                </div>
-              </fieldset>
-
-              <label class="checkbox-row">
-                <input id="includeRaw" name="includeRaw" type="checkbox">
-                <span>Include raw Grants.gov payload</span>
+              <label class="field">
+                <span>Agency query</span>
+                <input id="agencies" name="agencies" type="text" placeholder="NSF or HHS-ACF-ANA">
               </label>
 
-              <div class="form-actions">
-                <button type="submit" class="button button-primary">Search</button>
-                <button id="fill-ai-scenario" type="button" class="button button-secondary">
-                  AI Scenario
-                </button>
-                <button id="reset-form" type="button" class="button button-ghost">Reset</button>
+              <label class="field">
+                <span>ALN</span>
+                <input id="aln" name="aln" type="text" placeholder="93.866">
+              </label>
+
+              <label class="field">
+                <span>Eligibility</span>
+                <input id="eligibilities" name="eligibilities" type="text" placeholder="01">
+              </label>
+
+              <label class="field">
+                <span>Funding category</span>
+                <input id="fundingCategories" name="fundingCategories" type="text" placeholder="ST">
+              </label>
+
+              <label class="field">
+                <span>Instrument</span>
+                <input id="fundingInstruments" name="fundingInstruments" type="text" placeholder="G">
+              </label>
+            </div>
+
+            <fieldset class="field status-group">
+              <legend>Status</legend>
+              <div class="status-options">
+                <label><input type="checkbox" name="oppStatus" value="posted" checked> Posted</label>
+                <label><input type="checkbox" name="oppStatus" value="forecasted"> Forecasted</label>
+                <label><input type="checkbox" name="oppStatus" value="closed"> Closed</label>
+                <label><input type="checkbox" name="oppStatus" value="archived"> Archived</label>
               </div>
+            </fieldset>
+
+            <label class="checkbox-row">
+              <input id="includeRaw" name="includeRaw" type="checkbox">
+              <span>Include raw Grants.gov payload</span>
+            </label>
+
+            <div class="query-editor-actions">
+              <button id="fill-ai-scenario" class="button button-secondary" type="button">
+                AI Scenario
+              </button>
+              <button id="reset-query" class="text-button" type="button">
+                Clear query
+              </button>
+            </div>
+
+            <p class="drawer-helper">Use Search in the toolbar to refresh opportunities.</p>
+          </section>
+        </section>
+
+        <section class="drawer-section source-section">
+          <div class="drawer-section-head">
+            <p class="drawer-heading">Recommended sources</p>
+          </div>
+
+          <a class="source-item" href="https://www.grants.gov/" target="_blank" rel="noreferrer" title="Grants.gov">
+            <span class="source-mark source-mark-red" aria-hidden="true">G</span>
+            <span class="source-copy">
+              <strong>Grants.gov</strong>
+              <small>Main federal grant portal.</small>
+            </span>
+          </a>
+
+          <a class="source-item" href="https://www.sbir.gov/topics" target="_blank" rel="noreferrer" title="SBIR.gov">
+            <span class="source-mark source-mark-blue" aria-hidden="true">S</span>
+            <span class="source-copy">
+              <strong>SBIR.gov</strong>
+              <small>Startup, R&amp;D, and commercialization funding.</small>
+            </span>
+          </a>
+
+          <a class="source-item" href="https://seedfund.nsf.gov/" target="_blank" rel="noreferrer" title="NSF Seed Fund">
+            <span class="source-mark source-mark-gold" aria-hidden="true">N</span>
+            <span class="source-copy">
+              <strong>NSF Seed Fund</strong>
+              <small>Early-stage deep-tech funding.</small>
+            </span>
+          </a>
+
+          <a class="source-item" href="https://www.nih.gov/grants-funding" target="_blank" rel="noreferrer" title="NIH Grants">
+            <span class="source-mark source-mark-slate" aria-hidden="true">H</span>
+            <span class="source-copy">
+              <strong>NIH Grants</strong>
+              <small>Healthcare, biomedical, and medical AI funding.</small>
+            </span>
+          </a>
+        </section>
+
+        <button class="drawer-footer-button" type="button" title="Settings">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" focusable="false">
+              <path d="M10 4.25a5.75 5.75 0 1 0 0 11.5a5.75 5.75 0 1 0 0-11.5Z" />
+              <path d="M10 1.75v2.5M10 15.75v2.5M15.75 10h2.5M1.75 10h2.5M14.12 5.88l1.77-1.77M4.11 15.89l1.77-1.77M14.12 14.12l1.77 1.77M4.11 4.11l1.77 1.77" />
+            </svg>
+          </span>
+          <span class="nav-label">Settings</span>
+        </button>
+      </aside>
+
+      <div class="main-shell">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button
+              id="mobile-drawer-toggle"
+              class="icon-button topbar-menu"
+              type="button"
+              aria-label="Open navigation drawer"
+              title="Open navigation"
+            >
+              <svg viewBox="0 0 20 20" focusable="false">
+                <path d="M3 5.5h14M3 10h14M3 14.5h14" />
+              </svg>
+            </button>
+          </div>
+
+          <label class="topbar-search">
+            <span class="topbar-search-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" focusable="false">
+                <circle cx="8.5" cy="8.5" r="5.25" />
+                <path d="M12.4 12.4L16.5 16.5" />
+              </svg>
+            </span>
+            <input
+              id="global-search"
+              type="search"
+              placeholder="Search opportunities or keywords..."
+              aria-label="Search opportunities or keywords"
+            >
+          </label>
+
+          <button class="account-button" type="button" aria-label="Open account menu">
+            <span class="account-avatar" aria-hidden="true">AB</span>
+            <span class="account-caret" aria-hidden="true">
+              <svg viewBox="0 0 20 20" focusable="false">
+                <path d="M6 8.25L10 12.25l4-4" />
+              </svg>
+            </span>
+          </button>
+        </header>
+
+        <main class="workspace">
+          <section class="workspace-header">
+            <div class="workspace-heading">
+              <p id="workspace-kicker" class="workspace-kicker">DISCOVER</p>
+              <h1 id="workspace-title">Grant opportunities</h1>
+              <p id="workspace-subtitle" class="workspace-subtitle">
+                Loading opportunities...
+              </p>
+            </div>
+
+            <div class="workspace-actions">
+              <label class="select-field select-field-compact">
+                <span>Saved view</span>
+                <select id="saved-view-select" aria-label="Saved view">
+                  <option value="all">All opportunities</option>
+                  <option value="saved">Saved grants</option>
+                  <option value="closingSoon">Closing soon</option>
+                </select>
+              </label>
+
+              <button id="export-button" class="button button-ghost icon-button-inline" type="button">
+                <span aria-hidden="true">
+                  <svg viewBox="0 0 20 20" focusable="false">
+                    <path d="M10 3v8" />
+                    <path d="M6.75 7.5L10 11l3.25-3.5" />
+                    <path d="M4 13.5v2h12v-2" />
+                  </svg>
+                </span>
+                Export
+              </button>
+            </div>
+          </section>
+
+          <section id="metrics-strip" class="metrics-strip" aria-live="polite"></section>
+
+          <section class="toolbar-panel" aria-label="Filters">
+            <form id="view-filters-form" class="toolbar-form">
+              <label class="search-field search-field-toolbar">
+                <span class="topbar-search-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" focusable="false">
+                    <circle cx="8.5" cy="8.5" r="5.25" />
+                    <path d="M12.4 12.4L16.5 16.5" />
+                  </svg>
+                </span>
+                <input
+                  id="toolbar-search"
+                  type="search"
+                  placeholder="Search keywords..."
+                  aria-label="Search current opportunities"
+                >
+              </label>
+
+              <label class="select-field">
+                <span>Agency</span>
+                <select id="agency-filter" aria-label="Agency filter"></select>
+              </label>
+
+              <label class="select-field">
+                <span>Status</span>
+                <select id="status-filter" aria-label="Status filter"></select>
+              </label>
+
+              <label class="select-field">
+                <span>Closing window</span>
+                <select id="closing-window-filter" aria-label="Closing window filter">
+                  <option value="any">Any time</option>
+                  <option value="7">7 days</option>
+                  <option value="14">14 days</option>
+                  <option value="30">30 days</option>
+                  <option value="60">60 days</option>
+                </select>
+              </label>
+
+              <label class="select-field">
+                <span>Sort by</span>
+                <select id="sort-filter" aria-label="Sort opportunities">
+                  <option value="closingSoonest">Closing date (soonest)</option>
+                  <option value="recentlyOpened">Recently opened</option>
+                  <option value="matchHighest">Match score (highest)</option>
+                  <option value="fundingHighest">Funding amount (highest)</option>
+                  <option value="titleAz">Opportunity title (A-Z)</option>
+                </select>
+              </label>
+
+              <button class="button button-primary" type="submit">Search</button>
+              <button id="reset-view-filters" class="text-button toolbar-reset" type="button">
+                Reset
+              </button>
             </form>
           </section>
 
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Start Here</p>
-                <h2>Best portals</h2>
+          <section class="results-panel">
+            <div id="results-table-view" class="results-table-view">
+              <div class="table-scroll">
+                <table class="results-table">
+                  <thead>
+                    <tr>
+                      <th class="checkbox-cell">
+                        <input id="select-page" type="checkbox" aria-label="Select all visible opportunities">
+                      </th>
+                      <th>
+                        <button class="th-button" type="button" data-sort-key="titleAz">
+                          Opportunity &amp; ID
+                          <span aria-hidden="true">↕</span>
+                        </button>
+                      </th>
+                      <th>
+                        <button class="th-button" type="button" data-sort-key="agencyAz">
+                          Agency
+                          <span aria-hidden="true">↕</span>
+                        </button>
+                      </th>
+                      <th class="col-funding">
+                        <button class="th-button" type="button" data-sort-key="fundingHighest">
+                          Funding amount
+                          <span aria-hidden="true">↕</span>
+                        </button>
+                      </th>
+                      <th class="col-open">
+                        <button class="th-button" type="button" data-sort-key="recentlyOpened">
+                          Opens
+                          <span aria-hidden="true">↕</span>
+                        </button>
+                      </th>
+                      <th>
+                        <button class="th-button" type="button" data-sort-key="closingSoonest">
+                          Closes
+                          <span aria-hidden="true">↕</span>
+                        </button>
+                      </th>
+                      <th class="col-days">
+                        <button class="th-button" type="button" data-sort-key="daysLeft">
+                          Days left
+                          <span aria-hidden="true">↕</span>
+                        </button>
+                      </th>
+                      <th>Status</th>
+                      <th class="col-match">
+                        <button class="th-button" type="button" data-sort-key="matchHighest">
+                          Match score
+                          <span aria-hidden="true">↕</span>
+                        </button>
+                      </th>
+                      <th class="col-keyword">Matched term</th>
+                      <th class="bookmark-cell">
+                        <span class="sr-only">Save</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="results-body"></tbody>
+                </table>
               </div>
+
+              <div id="mobile-results" class="mobile-results"></div>
+
+              <footer class="table-footer">
+                <p id="result-range" class="table-footer-copy">0 opportunities</p>
+
+                <div class="table-footer-actions">
+                  <label class="table-footer-select">
+                    <span>Rows per page</span>
+                    <select id="page-size-select" aria-label="Rows per page">
+                      <option value="8">8</option>
+                      <option value="12">12</option>
+                      <option value="25">25</option>
+                    </select>
+                  </label>
+
+                  <div class="pagination-controls" aria-label="Pagination">
+                    <button id="page-first" class="icon-button" type="button" aria-label="First page">
+                      <svg viewBox="0 0 20 20" focusable="false">
+                        <path d="M13 5.5L8.5 10l4.5 4.5" />
+                        <path d="M8.5 5.5L4 10l4.5 4.5" />
+                      </svg>
+                    </button>
+                    <button id="page-prev" class="icon-button" type="button" aria-label="Previous page">
+                      <svg viewBox="0 0 20 20" focusable="false">
+                        <path d="M12.5 5.5L8 10l4.5 4.5" />
+                      </svg>
+                    </button>
+                    <span id="page-indicator" class="page-indicator">1</span>
+                    <button id="page-next" class="icon-button" type="button" aria-label="Next page">
+                      <svg viewBox="0 0 20 20" focusable="false">
+                        <path d="M7.5 5.5L12 10l-4.5 4.5" />
+                      </svg>
+                    </button>
+                    <button id="page-last" class="icon-button" type="button" aria-label="Last page">
+                      <svg viewBox="0 0 20 20" focusable="false">
+                        <path d="M7 5.5L11.5 10L7 14.5" />
+                        <path d="M11.5 5.5L16 10l-4.5 4.5" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </footer>
             </div>
 
-            <p class="compact-copy">
-              For a patent or AI product idea, begin with <strong>Grants.gov</strong>, <strong>NSF America’s Seed Fund</strong>, and <strong>SBIR.gov</strong>.
-            </p>
-
-            <div class="chip-row">
-              <button type="button" class="keyword-chip" data-keyword="artificial intelligence">artificial intelligence</button>
-              <button type="button" class="keyword-chip" data-keyword="patent analysis">patent analysis</button>
-              <button type="button" class="keyword-chip" data-keyword="research commercialization">research commercialization</button>
-              <button type="button" class="keyword-chip" data-keyword="software innovation">software innovation</button>
-            </div>
-
-            <div class="portal-list">
-              <a class="portal-row" href="https://www.grants.gov/" target="_blank" rel="noreferrer">
-                <strong>Grants.gov</strong>
-                <span>Main federal grant portal.</span>
-              </a>
-              <a class="portal-row" href="https://simpler.grants.gov/search" target="_blank" rel="noreferrer">
-                <strong>Simpler Grants</strong>
-                <span>Cleaner browsing for active opportunities.</span>
-              </a>
-              <a class="portal-row" href="https://www.sbir.gov/topics" target="_blank" rel="noreferrer">
-                <strong>SBIR.gov</strong>
-                <span>Startup, R&amp;D, and commercialization funding.</span>
-              </a>
-              <a class="portal-row" href="https://seedfund.nsf.gov/" target="_blank" rel="noreferrer">
-                <strong>NSF America’s Seed Fund</strong>
-                <span>Early-stage deep-tech funding.</span>
-              </a>
-              <a class="portal-row" href="https://www.nih.gov/grants-funding" target="_blank" rel="noreferrer">
-                <strong>NIH Grants</strong>
-                <span>Healthcare, biomedical, and medical AI funding.</span>
-              </a>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow">Filter Coverage</p>
-                <h2>What works here</h2>
+            <section id="sources-view" class="sources-view" hidden>
+              <div class="sources-grid">
+                <article class="source-card">
+                  <h2>Grants.gov</h2>
+                  <p>Main portal for nearly all federal grant opportunities.</p>
+                  <a href="https://www.grants.gov/" target="_blank" rel="noreferrer">Open portal</a>
+                </article>
+                <article class="source-card">
+                  <h2>Simpler Grants</h2>
+                  <p>A cleaner and easier way to search active federal grants.</p>
+                  <a href="https://simpler.grants.gov/search" target="_blank" rel="noreferrer">Open portal</a>
+                </article>
+                <article class="source-card">
+                  <h2>SBIR.gov</h2>
+                  <p>Best for technology startups, research products, AI, healthcare, and innovation funding.</p>
+                  <a href="https://www.sbir.gov/topics" target="_blank" rel="noreferrer">Open portal</a>
+                </article>
+                <article class="source-card">
+                  <h2>NSF Seed Fund</h2>
+                  <p>Funding for early-stage technology companies and research commercialization.</p>
+                  <a href="https://seedfund.nsf.gov/" target="_blank" rel="noreferrer">Open portal</a>
+                </article>
+                <article class="source-card">
+                  <h2>NIH Grants</h2>
+                  <p>Best for healthcare, medical AI, biomedical research, and clinical projects.</p>
+                  <a href="https://www.nih.gov/grants-funding" target="_blank" rel="noreferrer">Open portal</a>
+                </article>
               </div>
-            </div>
-
-            <ul class="mini-list">
-              <li><code>keyword</code> or multiple <code>keywords</code></li>
-              <li><code>recentDays</code>, <code>rows</code>, <code>oppStatuses</code></li>
-              <li><code>oppNum</code>, <code>agencies</code>, <code>aln</code></li>
-              <li><code>eligibilities</code>, <code>fundingCategories</code>, <code>fundingInstruments</code></li>
-            </ul>
-
-            <p class="panel-note">
-              Company name, state, and city are not official structured Grants.gov filters here. The closest fallback is adding them as keywords.
-            </p>
-          </section>
-        </aside>
-
-        <section class="stage">
-          <section class="panel stage-head">
-            <div>
-              <p class="eyebrow">Results Workspace</p>
-              <h2>Opportunity table</h2>
-              <p id="status-message" class="panel-note">Loading the default AI scenario...</p>
-            </div>
-            <div id="summary" class="metric-strip" aria-live="polite"></div>
+            </section>
           </section>
 
-          <section class="panel table-panel">
-            <div class="table-scroll">
-              <table class="results-table">
-                <thead>
-                  <tr>
-                    <th>Opportunity</th>
-                    <th>Agency</th>
-                    <th>Open</th>
-                    <th>Close</th>
-                    <th>Status</th>
-                    <th>Matched terms</th>
-                  </tr>
-                </thead>
-                <tbody id="results-body">
-                  <tr class="placeholder-row">
-                    <td colspan="6">Loading opportunities...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <details id="raw-panel" class="panel raw-panel" hidden>
+          <details id="raw-panel" class="raw-panel" hidden>
             <summary>Raw Grants.gov payload</summary>
             <pre id="raw-output"></pre>
           </details>
-        </section>
+        </main>
       </div>
-    </main>
+    </div>
 
     <script type="module" src="/app.js"></script>
   </body>

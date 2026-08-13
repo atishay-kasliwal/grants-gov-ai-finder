@@ -1,0 +1,6 @@
+name = "grant-analysis"
+compatibility_date = "2026-04-16"
+pages_build_output_dir = "public"
+
+[vars]
+GRANTS_GOV_BASE_URL = "https://api.grants.gov"
